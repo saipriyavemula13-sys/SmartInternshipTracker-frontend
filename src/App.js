@@ -23,10 +23,17 @@ function App() {
     }
   });
 
-  function handleLoginSuccess(user) {
-    sessionStorage.setItem("user", JSON.stringify(user));
-    setLoggedInUser(user);
-  }
+  function handleLoginSuccess(response) {
+  const user = {
+    id: response.id,
+    fullName: response.fullName,
+    email: response.email,
+    role: response.role,
+  };
+
+  sessionStorage.setItem("user", JSON.stringify(user));
+  setLoggedInUser(user);
+}
 
   function handleLogout() {
     sessionStorage.removeItem("token");

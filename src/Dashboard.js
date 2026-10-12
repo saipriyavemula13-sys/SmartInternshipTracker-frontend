@@ -13,6 +13,51 @@ const STATUSES = [
 "Withdrawn"
 ];
 
+function parseLocalDate(dateString) {
+  if (!dateString) return null;
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+  if (!match) return null;
+
+  const date = new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3])
+  );
+
+  // Reject invalid calendar dates.
+  if (
+    date.getFullYear() !== Number(match[1]) ||
+    date.getMonth() !== Number(match[2]) - 1 ||
+    date.getDate() !== Number(match[3])
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+function getDaysUntil(dateString) {
+  const target = parseLocalDate(dateString);
+  if (!target) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Math.round((target.getTime() - today.getTime()) / 86400000);
+}
+
+function formatReminderDate(dateString) {
+  const date = parseLocalDate(dateString);
+
+  return date
+    ? date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : dateString;
+}
 
 
 const EMPTY_FORM = {
@@ -38,6 +83,10 @@ function Dashboard({ user, onLogout }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  // Status history state
+const [statusHistory, setStatusHistory] = useState([]);
+const [historyLoading, setHistoryLoading] = useState(true);
+const [historyError, setHistoryError] = useState("");
 
   async function loadInternships() {
     setLoading(true);
@@ -61,8 +110,9 @@ function Dashboard({ user, onLogout }) {
   }
 
   useEffect(() => {
-    loadInternships();
-  }, []);
+  loadInternships();
+  loadStatusHistory();
+}, []);
 
   const filteredInternships = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -82,6 +132,45 @@ function Dashboard({ user, onLogout }) {
       return matchesSearch && matchesStatus;
     });
   }, [internships, search, statusFilter]);
+  
+const deadlineReminders = useMemo(() => {
+  const closedStatuses = ["Offered", "Rejected", "Withdrawn"];
+
+  return internships
+    .filter((item) => {
+      if (!item.deadline) return false;
+
+      const status = String(item.status || "").toLowerCase();
+
+      if (closedStatuses.some((s) => s.toLowerCase() === status)) {
+        return false;
+      }
+
+      const days = getDaysUntil(item.deadline);
+
+      return days !== null && days <= 3;
+    })
+    .map((item) => ({
+      ...item,
+      daysUntil: getDaysUntil(item.deadline),
+    }))
+    .sort((a, b) => a.daysUntil - b.daysUntil);
+}, [internships]);
+
+const upcomingInterviews = useMemo(() => {
+  return internships
+    .filter((item) => {
+      if (!item.interviewDate) return false;
+
+      const days = getDaysUntil(item.interviewDate);
+      return days !== null && days >= 0 && days <= 7;
+    })
+    .map((item) => ({
+      ...item,
+      daysUntil: getDaysUntil(item.interviewDate),
+    }))
+    .sort((a, b) => a.daysUntil - b.daysUntil);
+}, [internships]);
 
   const countByStatus = (status) =>
     internships.filter((item) => item.status === status).length;
@@ -142,6 +231,25 @@ async function handleDelete(item) {
       err.response?.data?.message ||
         "Could not delete internship. Please try again."
     );
+  }
+}
+async function loadStatusHistory() {
+  setHistoryLoading(true);
+  setHistoryError("");
+
+  try {
+    const response = await api.get("/internships/history");
+
+    setStatusHistory(
+      Array.isArray(response.data) ? response.data : []
+    );
+  } catch (err) {
+    setHistoryError(
+      err.response?.data?.message ||
+        "Could not load status history. Please refresh or log in again."
+    );
+  } finally {
+    setHistoryLoading(false);
   }
 }
   
@@ -297,6 +405,89 @@ async function handleSubmit(event) {
             color="red"
           />
         </section>
+        
+<section className="reminders-grid">
+  <div className="reminder-panel">
+    <h2>🔔 Deadline reminders</h2>
+    <p className="reminder-description">
+      Deadlines today, approaching, or already passed.
+    </p>
+
+    {deadlineReminders.length === 0 ? (
+      <p className="reminder-empty">
+        No upcoming or overdue deadlines. You're all caught up!
+      </p>
+    ) : (
+      <ul className="reminder-list">
+        {deadlineReminders.map((item) => (
+          <li key={item.id} className="reminder-item">
+            <div>
+              <strong>{item.companyName}</strong>
+              <p>{item.role}</p>
+              <small>
+                Deadline: {formatReminderDate(item.deadline)}
+              </small>
+            </div>
+
+            <span
+              className={
+                "reminder-badge " +
+                (item.daysUntil < 0
+                  ? "overdue"
+                  : item.daysUntil === 0
+                  ? "due-today"
+                  : "upcoming")
+              }
+            >
+              {item.daysUntil < 0
+                ? `${Math.abs(item.daysUntil)} day(s) overdue`
+                : item.daysUntil === 0
+                ? "Due today"
+                : item.daysUntil === 1
+                ? "Due tomorrow"
+                : `Due in ${item.daysUntil} days`}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+
+  <div className="reminder-panel">
+    <h2>📅 Upcoming interviews</h2>
+    <p className="reminder-description">
+      Interviews scheduled within the next 7 days.
+    </p>
+
+    {upcomingInterviews.length === 0 ? (
+      <p className="reminder-empty">
+        No interviews scheduled in the next 7 days.
+      </p>
+    ) : (
+      <ul className="reminder-list">
+        {upcomingInterviews.map((item) => (
+          <li key={item.id} className="reminder-item">
+            <div>
+              <strong>{item.companyName}</strong>
+              <p>{item.role}</p>
+              <small>
+                Interview: {formatReminderDate(item.interviewDate)}
+              </small>
+            </div>
+
+            <span className="reminder-badge upcoming">
+              {item.daysUntil === 0
+                ? "Today"
+                : item.daysUntil === 1
+                ? "Tomorrow"
+                : `In ${item.daysUntil} days`}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</section>
 
         {showForm && (
           <section className="form-panel">
@@ -463,7 +654,89 @@ async function handleSubmit(event) {
             </form>
           </section>
         )}
+         <section className="table-panel status-history-panel">
+  <div className="panel-heading">
+    <div>
+      <h2>📋 Application Status History</h2>
+      <p>Track how your internship application status changes over time.</p>
+    </div>
 
+    <button
+      type="button"
+      className="secondary-button"
+      onClick={loadStatusHistory}
+      disabled={historyLoading}
+    >
+      {historyLoading ? "Loading..." : "Refresh History"}
+    </button>
+  </div>
+
+  {historyError && (
+    <div className="dashboard-error" role="alert">
+      {historyError}
+    </div>
+  )}
+
+  {historyLoading ? (
+    <p className="reminder-empty">Loading status history...</p>
+  ) : statusHistory.length === 0 ? (
+    <p className="reminder-empty">
+      No status history available yet. Add or update an internship to track changes.
+    </p>
+  ) : (
+    <div className="table-scroll">
+      <table className="internship-table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Previous Status</th>
+            <th>New Status</th>
+            <th>Date & Time</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {statusHistory.map((history) => {
+            const internship = internships.find(
+              (item) => item.id === history.internshipId
+            );
+
+            return (
+              <tr key={history.id}>
+                <td>
+                  <strong>
+                    {history.companyName ||
+                      internship?.companyName ||
+                      "Internship"}
+                  </strong>
+                </td>
+
+                <td>{history.oldStatus || "—"}</td>
+                <td>
+                  <span
+                    className={
+                      "status-pill " +
+                      String(history.newStatus || "")
+                        .toLowerCase()
+                    }
+                  >
+                    {history.newStatus || "—"}
+                  </span>
+                </td>
+
+                <td>
+                  {history.changedAt
+                    ? new Date(history.changedAt).toLocaleString("en-IN")
+                    : "—"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  )}
+</section>
         <section className="table-panel" id="internship-list">
           <div className="panel-heading">
             <div>
