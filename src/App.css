@@ -1,38 +1,356 @@
-.App {
-  text-align: center;
+
+/* Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #edf2ff, #f8f9ff, #e9e7ff);
+  color: #172554;
   min-height: 100vh;
+}
+
+/* Main page container */
+.app {
+  width: 100%;
+  max-width: 650px;
+  margin: 55px auto;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(55, 65, 150, 0.14);
+}
+
+/* Heading */
+h1 {
+  color: #273db5;
+  font-size: 34px;
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: -0.8px;
+}
+
+.app::before {
+  content: "SMART INTERNSHIP TRACKER";
+  display: block;
+  text-align: center;
+  color: #6575d8;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin-bottom: 15px;
+}
+
+/* Supporting text */
+.app > p {
+  text-align: center;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 15px 0;
+}
+
+/* Form and cards */
+.internship-form,
+.internship-card {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  background: #ffffff;
+  padding: 25px;
+  border: 1px solid #e4e9f8;
+  border-radius: 18px;
+  margin-bottom: 22px;
+  box-shadow: 0 8px 25px rgba(30, 50, 120, 0.06);
+}
+
+/* Form labels */
+label {
+  color: #27365e;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+/* Input fields */
+input,
+select {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid #d6dced;
+  border-radius: 10px;
+  background: #fbfcff;
+  color: #172554;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input::placeholder {
+  color: #9aa6bf;
+}
+
+input:focus,
+select:focus {
+  border-color: #5968ed;
+  box-shadow: 0 0 0 4px rgba(89, 104, 237, 0.12);
+  background: #ffffff;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4f46e5, #3459ef);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  box-shadow: 0 7px 16px rgba(79, 70, 229, 0.22);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(79, 70, 229, 0.3);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Internship cards */
+.internship-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.internship-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(30, 50, 120, 0.1);
+}
+
+.internship-card h3 {
+  margin-bottom: 5px;
+  color: #3949c7;
+  font-size: 20px;
+}
+
+.internship-card p {
+  margin: 4px 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* Registration success and error messages */
+.success-message {
+  padding: 13px;
+  border-radius: 10px;
+  background: #dcfce7;
+  color: #166534;
+  text-align: center;
+  margin-top: 18px;
+}
+
+.error-message {
+  padding: 13px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  text-align: center;
+  margin-top: 18px;
+}
+
+/* Mobile-friendly layout */
+@media (max-width: 600px) {
+  .app {
+    width: calc(100% - 28px);
+    margin: 25px auto;
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  h1 {
+    font-size: 27px;
+  }
+
+  .internship-form,
+  .internship-card {
+    padding: 18px;
+  }
+}
+
+/* Registration page */
+.register-page {
+  max-width: 500px;
+  margin: 45px auto;
+  padding: 36px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.brand-icon {
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 18px;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #635bff, #8b5cf6);
   color: white;
+  font-size: 30px;
+  box-shadow: 0 8px 20px #635bff35;
 }
 
-.App-link {
-  color: #61dafb;
+.register-page .eyebrow {
+  color: #6158d9;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  margin-bottom: 12px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.register-page h1 {
+  font-size: 30px;
+  margin-bottom: 12px;
+}
+
+.register-page .subtitle {
+  color: #77829b;
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 25px;
+}
+
+.register-page .internship-form {
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 0;
+  gap: 11px;
+}
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  padding-right: 75px;
+}
+
+.password-wrapper .password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  margin: 0;
+  padding: 7px 9px;
+  background: transparent;
+  color: #5147d9;
+  box-shadow: none;
+  font-size: 13px;
+}
+
+.password-wrapper .password-toggle:hover {
+  color: #3025a9;
+  transform: translateY(-50%);
+  text-decoration: underline;
+}
+
+.register-page .internship-form > button[type="submit"] {
+  margin-top: 12px;
+}
+
+.register-page button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+.helper-text {
+  color: #8993a8;
+  font-size: 12px;
+  margin-top: -4px;
+}
+
+.register-page .login-prompt {
+  font-size: 13px;
+  margin-top: 24px;
+  margin-bottom: 16px;
+}
+
+.login-link {
+  color: #5147d9;
+  font-weight: 700;
+}
+
+.footer-text {
+  border-top: 1px solid #edf0f7;
+  padding-top: 18px;
+  color: #9aa3b5 !important;
+  font-size: 11px !important;
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 600px) {
+  .register-page {
+    width: calc(100% - 28px);
+    margin: 20px auto;
+    padding: 25px 20px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .register-page h1 {
+    font-size: 26px;
   }
+}
+
+/* Login and registration links */
+.text-link {
+  display: inline;
+  width: auto;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: #5147d9;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+}
+
+.text-link:hover {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  text-decoration: underline;
+}
+
+.register-page .internship-form label {
+  margin-top: 7px;
+}
+
+.register-page .internship-form input {
+  min-height: 46px;
+}
+
+.register-page .internship-form > button[type="submit"] {
+  min-height: 48px;
+}
+
+.register-page .success-message,
+.register-page .error-message {
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }

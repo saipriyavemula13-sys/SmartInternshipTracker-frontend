@@ -1,24 +1,62 @@
-import logo from './logo.svg';
-import './App.css';
+
+import { useState } from "react";
+import Login from "./Login";
+import Register from "./Register";
+import Dashboard from "./Dashboard";
 
 function App() {
+  const [page, setPage] = useState("login");
+  const [loggedInUser, setLoggedInUser] = useState(() => {
+    const token = sessionStorage.getItem("token");
+    const savedUser = sessionStorage.getItem("user");
+
+    if (!token || !savedUser) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(savedUser);
+    } catch {
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      return null;
+    }
+  });
+
+  function handleLoginSuccess(user) {
+    sessionStorage.setItem("user", JSON.stringify(user));
+    setLoggedInUser(user);
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    setLoggedInUser(null);
+    setPage("login");
+  }
+
+  if (loggedInUser) {
+    return (
+      <Dashboard
+        user={loggedInUser}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  if (page === "register") {
+    return (
+      <Register
+        onShowLogin={() => setPage("login")}
+      />
+    );
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Login
+      onShowRegister={() => setPage("register")}
+      onLoginSuccess={handleLoginSuccess}
+    />
   );
 }
 
